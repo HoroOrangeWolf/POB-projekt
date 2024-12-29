@@ -10,26 +10,27 @@
   "links": [],
   "panels": [
     {
-      "title": "Całkowita liczba wysłanych wiadomości",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "sum(messages_sent_total)",
-          "legendFormat": "Wszystkie wiadomości",
-          "refId": "A"
-        }
-      ],
+      "title": "Liczba wiadomości na sekundę",
+      "type": "timeseries",
       "gridPos": {
         "h": 6,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 0
       },
+      "targets": [
+        {
+          "expr": "rate(messages_sent_total[1m])",
+          "legendFormat": "Wiadomości/s",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
+          "unit": "messages/sec",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -38,110 +39,244 @@
                 "value": null
               },
               {
+                "color": "orange",
+                "value": 50
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 100
               }
             ]
           }
         }
       },
       "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["sum"]
-        }
-      }
-    },
-    {
-      "title": "Wiadomości pomyślne vs błędy (per node)",
-      "type": "timeseries",
-      "targets": [
-        {
-          "expr": "sum by (node) (messages_success_total)",
-          "legendFormat": "Pomyślne",
-          "refId": "B"
-        },
-        {
-          "expr": "sum by (node) (messages_error_total)",
-          "legendFormat": "Błędy",
-          "refId": "C"
-        }
-      ],
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 6
-      },
-      "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {}
-      }
-    },
-    {
-      "title": "Średni czas propagacji",
-      "type": "gauge",
-      "targets": [
-        {
-          "expr": "avg(propagation_time_milliseconds)",
-          "legendFormat": "Propagation (ms)",
-          "refId": "D"
-        }
-      ],
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 15
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      }
-    },
-    {
-      "title": "Przesłane wiadomości vs Retransmisje (per node)",
-      "type": "timeseries",
-      "targets": [
-        {
-          "expr": "sum by (node) (messages_forwarded_total)",
-          "legendFormat": "Przesłane",
-          "refId": "E"
         },
-        {
-          "expr": "sum by (node) (messages_retransmit_total)",
-          "legendFormat": "Retransmisje",
-          "refId": "F"
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
         }
-      ],
+      }
+    },
+    {
+      "title": "Średni czas propagacji (ms)",
+      "type": "timeseries",
       "gridPos": {
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "rate(propagation_time_milliseconds_sum[1m]) / rate(propagation_time_milliseconds_count[1m])",
+          "legendFormat": "Średnia propagacji (ms)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "milliseconds",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          }
+        }
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "title": "Retransmisje na sekundę w wszystkich nodach",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "expr": "rate(retransmissions_total[1m])",
+          "legendFormat": "Retransmisje/s",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "messages/sec",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          }
         }
       },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "title": "Aktywne połączenia",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "expr": "active_connections",
+          "legendFormat": "Aktywne połączenia",
+          "refId": "C"
+        }
+      ],
       "fieldConfig": {
-        "defaults": {}
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "title": "Weryfikacje kodu Bergera na minutę",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "targets": [
+        {
+          "expr": "sum by (node) (rate(berger_verification_success_total[1m]) * 60)",
+          "legendFormat": "Node {{node}}",
+          "refId": "E"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
       }
     }
   ],
   "schemaVersion": 30,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "propagation",
+    "messages",
+    "latency"
+  ],
   "templating": {
     "list": []
   },
@@ -151,7 +286,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Monitoring Wiadomości",
+  "title": "Monitoring Systemu",
   "version": 1,
   "weekStart": ""
 }

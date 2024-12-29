@@ -1,8 +1,12 @@
 package org.example;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class SupervisorServer {
     private static final int[] superVisorConnectedNodes = {0, 1};
     // 7 Serwerów połączonych z Supervisorem łącznie 8
@@ -27,13 +31,14 @@ public class SupervisorServer {
         Random random = new Random();
         StringBuilder stringBuilder = new StringBuilder();
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 16; i++) {
             stringBuilder.append(random.nextInt(2));
         }
 
         return stringBuilder.toString();
     }
 
+    @SneakyThrows
     public static void main(String[] args) {
         PrometheusServer.startAutomaticPush();
 
@@ -50,7 +55,11 @@ public class SupervisorServer {
         }
 
         waitForServerToStart();
-        sendRandomMessageToChildren();
+        for (int i = 0; i < 10000; i++) {
+            log.info("Iteration of messages: {}", i);
+            sendRandomMessageToChildren();
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
     }
 
     private static void waitForServerToStart() {
@@ -59,15 +68,6 @@ public class SupervisorServer {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-//        Arrays.stream(serverPorts).forEach(port -> {
-//            while (true) {
-//                try (Socket serverSocket = new Socket("localhost", port)) {
-//                    serverSocket.close();
-//                    return;
-//                } catch (IOException _) {
-//                }
-//            }
-//        });
     }
 
     private static void sendRandomMessageToChildren() {
@@ -82,7 +82,7 @@ public class SupervisorServer {
         for (int targetPortIndex : superVisorConnectedNodes) {
             int serverPort = serverPorts[targetPortIndex];
 
-            MessageSenderWrapper serverWrapper = new MessageSenderWrapper(securedMessage, serverPort);
+            MessageSenderWrapper serverWrapper = new MessageSenderWrapper(securedMessage, 8080, serverPort, true);
             new Thread(serverWrapper).start();
         }
     }

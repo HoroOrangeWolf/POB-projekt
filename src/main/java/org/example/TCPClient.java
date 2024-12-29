@@ -24,8 +24,10 @@ public class TCPClient implements Runnable {
         log.info("TCP Client started on port {}", port);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            Socket socket = serverSocket.accept();
-            handleClient(socket);
+            while (true) {
+                Socket socket = serverSocket.accept();
+                handleClient(socket);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -39,16 +41,21 @@ public class TCPClient implements Runnable {
             String securedMessage;
             while ((securedMessage = reader.readLine()) != null) {
                 try {
+                    securedMessage = DisturbMessage.disturbMessage(securedMessage, 0.95f);
+                    PrometheusServer.incrementBergerVerificationSuccess(port);
+
                     String parsedMessage = BergerCode.parseMessage(securedMessage);
                     log.info("Server na porcie {} odebrał: {}", port, parsedMessage);
-                    writer.println("SUCCESS");
-                    // Przekazywanie do dzieci
                     forwardToChildren(securedMessage);
+                    writer.println("SUCCESS");
+                    break;
                 } catch (InvalidBergerCodeException e) {
                     log.error("Failed to parse message", e);
                     writer.println("ERROR");
                 }
             }
+
+            socket.close();
         } catch (IOException e) {
             log.error("Błąd obsługi klienta", e);
         }
@@ -56,7 +63,7 @@ public class TCPClient implements Runnable {
 
     private void forwardToChildren(String message) {
         children.stream()
-                .map(childPort -> new MessageSenderWrapper(message, childPort))
+                .map(childPort -> new MessageSenderWrapper(message, port, childPort))
                 .map(executor::submit)
                 .forEach(future -> {
                     try {
