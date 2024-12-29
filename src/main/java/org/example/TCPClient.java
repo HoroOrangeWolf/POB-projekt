@@ -1,46 +1,70 @@
 package org.example;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.List;
+import java.util.concurrent.*;
 
-public class TCPClient {
-    public static void main(String[] args) {
-        String host = "localhost";
-        int port = 8080;
+@Slf4j
+public class TCPClient implements Runnable {
+    private final List<Integer> children;
+    private final int port;
+    private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        try (Socket socket = new Socket(host, port)) {
-            System.out.println("Połączono z serwerem " + host + ":" + port);
+    public TCPClient(List<Integer> children, int port) {
+        this.children = children;
+        this.port = port;
+    }
 
-            try (OutputStream output = socket.getOutputStream();
-                 PrintWriter writer = new PrintWriter(output, true);
-                 InputStream input = socket.getInputStream();
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-                 Scanner scanner = new Scanner(System.in)) {
+    @Override
+    public void run() {
+        log.info("TCP Client started on port {}", port);
 
-                while (true) {
-                    System.out.print("Wpisz wiadomość do wysłania (lub 'exit' aby zakończyć): ");
-                    String message = scanner.nextLine();
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            Socket socket = serverSocket.accept();
+            handleClient(socket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-                    if ("exit".equalsIgnoreCase(message)) {
-                        System.out.println("Zakończono połączenie z serwerem.");
-                        break;
-                    }
 
-                    writer.println(message);
+    private void handleClient(Socket socket) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true)) {
 
-                    String response = reader.readLine();
-                    if (response == null) {
-                        System.out.println("Serwer zakończył połączenie.");
-                        break;
-                    }
-
-                    System.out.println("Odpowiedź serwera: " + response);
+            String securedMessage;
+            while ((securedMessage = reader.readLine()) != null) {
+                try {
+                    String parsedMessage = BergerCode.parseMessage(securedMessage);
+                    log.info("Server na porcie {} odebrał: {}", port, parsedMessage);
+                    writer.println("SUCCESS");
+                    // Przekazywanie do dzieci
+                    forwardToChildren(securedMessage);
+                } catch (InvalidBergerCodeException e) {
+                    log.error("Failed to parse message", e);
+                    writer.println("ERROR");
                 }
             }
         } catch (IOException e) {
-            System.err.println("Błąd klienta: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Błąd obsługi klienta", e);
         }
+    }
+
+    private void forwardToChildren(String message) {
+        children.stream()
+                .map(childPort -> new MessageSenderWrapper(message, childPort))
+                .map(executor::submit)
+                .forEach(future -> {
+                    try {
+                        // Czeka na potwierdzenie wiadomości
+                        future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }
