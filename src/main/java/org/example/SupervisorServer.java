@@ -5,12 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class SupervisorServer {
-    private static final int[] superVisorConnectedNodes = {0, 1};
+    private static final Integer[] superVisorConnectedNodes = {0, 1};
     // 7 Serwerów połączonych z Supervisorem łącznie 8
-    private static final int[] serverPorts = {8081, 8082, 8083, 8084, 8085, 8086, 8087};
+    private static final Integer[] serverPorts = {8081, 8082, 8083, 8084, 8085, 8086, 8087};
     private static final Map<Integer, List<Integer>> treeTopology = new HashMap<>();
 
     static {
@@ -54,11 +55,25 @@ public class SupervisorServer {
             new Thread(tcpClient).start();
         }
 
+        SimpleConfigApp.launchConfigApp();
         waitForServerToStart();
-        for (int i = 0; i < 10000; i++) {
-            log.info("Iteration of messages: {}", i);
-            sendRandomMessageToChildren();
-            TimeUnit.MILLISECONDS.sleep(10);
+
+        List<Thread> allThreads = new LinkedList<>();
+
+        while (true) {
+            allThreads = allThreads.stream()
+                    .filter(Thread::isAlive)
+                    .collect(Collectors.toCollection(LinkedList::new));
+
+            if (allThreads.size() >= SimpleConfigApp.getMaxActiveMessages()) {
+                continue;
+            }
+
+            List<Thread> threadList = sendRandomMessageToChildren();
+
+            allThreads.addAll(threadList);
+
+            TimeUnit.MILLISECONDS.sleep(1000 / SimpleConfigApp.getMessageRate());
         }
     }
 
@@ -70,7 +85,7 @@ public class SupervisorServer {
         }
     }
 
-    private static void sendRandomMessageToChildren() {
+    private static List<Thread> sendRandomMessageToChildren() {
         String message = generateMessage();
 
         String bergerCode = BergerCode.encode(message);
@@ -79,11 +94,14 @@ public class SupervisorServer {
 
         PrometheusServer.incMessageSent();
 
-        for (int targetPortIndex : superVisorConnectedNodes) {
-            int serverPort = serverPorts[targetPortIndex];
+        List<Thread> readyThreads = Arrays.stream(superVisorConnectedNodes)
+                .map(targetPort -> serverPorts[targetPort])
+                .map(serverPort -> new MessageSenderWrapper(securedMessage, 8080, serverPort, true))
+                .map(Thread::new)
+                .toList();
 
-            MessageSenderWrapper serverWrapper = new MessageSenderWrapper(securedMessage, 8080, serverPort, true);
-            new Thread(serverWrapper).start();
-        }
+        readyThreads.forEach(Thread::start);
+
+        return readyThreads;
     }
 }

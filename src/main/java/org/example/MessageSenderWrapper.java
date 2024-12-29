@@ -36,13 +36,11 @@ public class MessageSenderWrapper implements Runnable {
 
     @SneakyThrows
     private Socket createSocket() {
-        int attempts = 0;
         while (true) {
             try {
                 return new Socket("localhost", targetPort);
             } catch (Exception e) {
-                log.error("Attempt {} for port {}", attempts++, sourcePort, e);
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.MILLISECONDS.sleep(50);
             }
         }
     }

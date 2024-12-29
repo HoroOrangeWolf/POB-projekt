@@ -40,6 +40,15 @@ public class PrometheusServer {
             .labelNames("node")
             .register(registry);
 
+    private static final Counter bergerVerificationError = Counter.build()
+            .name("berger_verification_error_total")
+            .help("Całkowita liczba nieprawidłowych weryfikacji kodu Bergera")
+            .register(registry);
+
+    public static void incrementBergerVerificationError() {
+        bergerVerificationError.inc();
+    }
+
     public static void incrementBergerVerificationSuccess(int port) {
         bergerVerificationSuccess.labels(String.valueOf(port)).inc();
     }
@@ -74,6 +83,6 @@ public class PrometheusServer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }, 0, 5, TimeUnit.SECONDS);  // Co 5 sekund
+        }, 0, 1, TimeUnit.SECONDS);
     }
 }

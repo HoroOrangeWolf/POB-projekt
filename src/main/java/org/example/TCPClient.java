@@ -41,13 +41,19 @@ public class TCPClient implements Runnable {
             String securedMessage;
             while ((securedMessage = reader.readLine()) != null) {
                 try {
-                    securedMessage = DisturbMessage.disturbMessage(securedMessage, 0.95f);
+                    String originalMessage = securedMessage;
+                    securedMessage = DisturbMessage.disturbMessage(securedMessage, SimpleConfigApp.getDisturbProbability());
                     PrometheusServer.incrementBergerVerificationSuccess(port);
 
                     String parsedMessage = BergerCode.parseMessage(securedMessage);
                     log.info("Server na porcie {} odebrał: {}", port, parsedMessage);
                     forwardToChildren(securedMessage);
                     writer.println("SUCCESS");
+
+                    if (!originalMessage.equals(securedMessage)) {
+                        PrometheusServer.incrementBergerVerificationError();
+                    }
+
                     break;
                 } catch (InvalidBergerCodeException e) {
                     log.error("Failed to parse message", e);

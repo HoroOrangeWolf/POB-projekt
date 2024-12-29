@@ -12,19 +12,23 @@ public class DisturbMessage {
             return disturbMessage;
         }
 
-        int length = disturbMessage.length();
-        int toChange = rand.nextInt(0, length);
-        char charAt = disturbMessage.charAt(toChange);
-
-        if (charAt == '0') {
-            charAt = '1';
-        } else if (charAt == '1') {
-            charAt = '0';
-        }
+        int randInt = rand.nextInt(3);
 
         StringBuilder stringBuilder = new StringBuilder(disturbMessage);
+        int length = disturbMessage.length();
 
-        stringBuilder.setCharAt(toChange, charAt);
+        for (int i = 0; i < randInt; i++) {
+            int toChange = rand.nextInt(0, length);
+            char charAt = disturbMessage.charAt(toChange);
+
+            if (charAt == '0') {
+                charAt = '1';
+            } else if (charAt == '1') {
+                charAt = '0';
+            }
+
+            stringBuilder.setCharAt(toChange, charAt);
+        }
 
         return stringBuilder.toString();
     }
