@@ -1,0 +1,18 @@
+{
+  "dashboard": {
+    "title": "Monitoring Wiadomości",
+    "panels": [
+      {
+        "title": "Liczba wysłanych wiadomości",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "messages_sent",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

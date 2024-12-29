@@ -1,0 +1,157 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1641795407527,
+  "links": [],
+  "panels": [
+    {
+      "title": "Całkowita liczba wysłanych wiadomości",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(messages_sent_total)",
+          "legendFormat": "Wszystkie wiadomości",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["sum"]
+        }
+      }
+    },
+    {
+      "title": "Wiadomości pomyślne vs błędy (per node)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (node) (messages_success_total)",
+          "legendFormat": "Pomyślne",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (node) (messages_error_total)",
+          "legendFormat": "Błędy",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
+    },
+    {
+      "title": "Średni czas propagacji",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "avg(propagation_time_milliseconds)",
+          "legendFormat": "Propagation (ms)",
+          "refId": "D"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      }
+    },
+    {
+      "title": "Przesłane wiadomości vs Retransmisje (per node)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (node) (messages_forwarded_total)",
+          "legendFormat": "Przesłane",
+          "refId": "E"
+        },
+        {
+          "expr": "sum by (node) (messages_retransmit_total)",
+          "legendFormat": "Retransmisje",
+          "refId": "F"
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
+    }
+  ],
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Monitoring Wiadomości",
+  "version": 1,
+  "weekStart": ""
+}

@@ -35,6 +35,8 @@ public class SupervisorServer {
     }
 
     public static void main(String[] args) {
+        PrometheusServer.startAutomaticPush();
+
         for (int i = 0; i < serverPorts.length; i++) {
             int port = serverPorts[i];
             List<Integer> childrenNodes = Optional.ofNullable(treeTopology.get(i))
@@ -74,6 +76,8 @@ public class SupervisorServer {
         String bergerCode = BergerCode.encode(message);
 
         String securedMessage = message + bergerCode;
+
+        PrometheusServer.incMessageSent();
 
         for (int targetPortIndex : superVisorConnectedNodes) {
             int serverPort = serverPorts[targetPortIndex];
