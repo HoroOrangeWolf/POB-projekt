@@ -12,7 +12,7 @@ public class DisturbMessage {
             return disturbMessage;
         }
 
-        int randInt = rand.nextInt(3);
+        int randInt = rand.nextInt(1, 4);
 
         StringBuilder stringBuilder = new StringBuilder(disturbMessage);
         int length = disturbMessage.length();
