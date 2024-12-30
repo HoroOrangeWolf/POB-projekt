@@ -124,8 +124,8 @@
       },
       "targets": [
         {
-          "expr": "rate(retransmissions_total[1m])",
-          "legendFormat": "Retransmisje/s",
+          "expr": "sum by (node) (rate(retransmissions_total[1m]))",
+          "legendFormat": "Node {{node}}",
           "refId": "B"
         }
       ],
@@ -218,7 +218,7 @@
       }
     },
     {
-      "title": "Weryfikacje kodu Bergera na minutę",
+      "title": "Weryfikacje kodu Bergera na sekundę",
       "type": "timeseries",
       "gridPos": {
         "h": 6,
@@ -228,7 +228,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (node) (rate(berger_verification_success_total[1m]) * 60)",
+          "expr": "sum by (node) (rate(berger_verification_success_total[1m]))",
           "legendFormat": "Node {{node}}",
           "refId": "E"
         }
@@ -238,7 +238,7 @@
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "short",
+          "unit": "messages/sec",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -248,11 +248,11 @@
               },
               {
                 "color": "orange",
-                "value": 20
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 50
+                "value": 5
               }
             ]
           }
@@ -280,8 +280,8 @@
       },
       "targets": [
         {
-          "expr": "rate(berger_verification_error_total[1m])",
-          "legendFormat": "Błędne weryfikacje/s",
+          "expr": "sum by (node) (rate(berger_verification_error_total[1m]))",
+          "legendFormat": "Node {{node}}",
           "refId": "H"
         }
       ],
@@ -305,6 +305,58 @@
               {
                 "color": "red",
                 "value": 0.5
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "title": "Sukcesywne weryfikacje kodu Bergera",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "targets": [
+        {
+          "expr": "sum by (node) (rate(berger_successive_verification_total[1m]))",
+          "legendFormat": "Node {{node}}",
+          "refId": "J"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "messages/sec",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
           }

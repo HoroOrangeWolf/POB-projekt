@@ -65,7 +65,7 @@ public class MessageSenderWrapper implements Runnable {
                     log.info("Message {} was successfully processed", message);
                     break;
                 } else if (CODE_ERROR.equals(message)) {
-                    PrometheusServer.incrementRetransmission();
+                    PrometheusServer.incrementRetransmission(this.sourcePort);
                     log.warn("Client server failed to deliver message: {} to server on port {}, attempting to resend", message, targetServer.getPort());
                     writer.println(securedMessage);
                 }

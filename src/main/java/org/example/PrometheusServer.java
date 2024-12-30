@@ -27,6 +27,7 @@ public class PrometheusServer {
     private static final Counter retransmissions = Counter.build()
             .name("retransmissions_total")
             .help("Całkowita liczba retransmisji")
+            .labelNames("node")
             .register(registry);
 
     private static final Gauge activeConnections = Gauge.build()
@@ -43,13 +44,25 @@ public class PrometheusServer {
     private static final Counter bergerVerificationError = Counter.build()
             .name("berger_verification_error_total")
             .help("Całkowita liczba nieprawidłowych weryfikacji kodu Bergera")
+            .labelNames("node")
             .register(registry);
 
-    public static void incrementBergerVerificationError() {
-        bergerVerificationError.inc();
+    private static final Counter bergerSuccessiveVerification = Counter.build()
+            .name("berger_successive_verification_total")
+            .help("Całkowita liczba sukcesywnych weryfikacji kodu Bergera")
+            .labelNames("node")
+            .register(registry);
+
+
+    public static void incrementBergerSuccessiveVerification(int port) {
+        bergerSuccessiveVerification.labels(String.valueOf(port)).inc();
     }
 
-    public static void incrementBergerVerificationSuccess(int port) {
+    public static void incrementBergerVerificationError(int node) {
+        bergerVerificationError.labels(Integer.toString(node)).inc();
+    }
+
+    public static void incrementBergerVerificationCount(int port) {
         bergerVerificationSuccess.labels(String.valueOf(port)).inc();
     }
 
@@ -61,8 +74,8 @@ public class PrometheusServer {
         activeConnections.dec();
     }
 
-    public static void incrementRetransmission() {
-        retransmissions.inc();
+    public static void incrementRetransmission(int node) {
+        retransmissions.labels(Integer.toString(node)).inc();
     }
 
     public static void incMessageSent() {
